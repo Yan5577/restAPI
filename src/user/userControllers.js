@@ -1,10 +1,14 @@
 const User = require("./userModels");
+const jwt = require("jsonwebtoken");
 
 exports.createUser = async (request, response) => {
     try {
-        const newUser = await User.create(request.body);
-        console.log("SUCCESFUL", newUser);
-        response.status(201).send({ user: newUser.username });
+      const newUser = await User.create(request.body);
+      console.log(newUser)
+      const token = await jwt.sign({_id:newUser._id}, process.env.SECRET)
+      console.log("SUCCESFUL", newUser);
+      
+        response.status(201).send({ user: newUser.username, token });
     } catch (error) {
         console.log(error);
         response.status(500).send({error: error.message});
@@ -50,9 +54,15 @@ exports.deleteUsers = async (request, response) => {
 
 exports.loginUser = async (request, response) => {
   try {
+    if (request.authUser) {
+      console.log("token exists continue to login")
+      response.status(200).send({username: request.user.username})
+    }
     const user = await User.findOne({ username: request.body.username })
-    response.status(200).send({username: user.username})
-  } catch (error) {
+    const token = await jwt.sign({ _id: user._id }, process.env.SECRET)
+    console.log("token not passed continue to login and generate a new token")
+    response.status(200).send({ username: user.username, token })
+    } catch (error) {
     console.log(error);
     response.status(500).send({ error: error.message });
   }
