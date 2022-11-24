@@ -29,11 +29,15 @@ exports.comparePass = async (request, reponse, next) => {
   }
 }
 
-exports.tokenCheck = async (request, resonse, next) => {
+exports.tokenCheck = async (request, response, next) => {
+  console.log("line33")
   try {
+    console.log(request.header)
     if (request.header("Authorization")) {
-      const token = request.header("Authorization").replace("Bearer", "")
-      const decodedToken = await jwt.verify(token, process.env.SERCET)
+      console.log("line37")
+      const token = request.header("Authorization").replace("Bearer ", "")
+      console.log(token)
+      const decodedToken = await jwt.verify(token, process.env.SECRET)
       const user = await User.findById(decodedToken._id)
       request.authUser = user
       console.log("headers passed")
@@ -44,6 +48,20 @@ exports.tokenCheck = async (request, resonse, next) => {
 
   } catch (error) {
     console.log(error)
-    response.status(500)
+    response.status(500).send({error: error.message})
+  }
+}
+
+exports.validateEmail = async (request, response, next) => {
+  try {
+      if (validator.validate(request.body.email)) {
+          console.log("vaild email")
+          next()
+      } else {
+          throw new Error ("invaild email please try again")
+      }
+  } catch (error) {
+      console.log(error)
+      response.status(500).send({error: error.message})
   }
 }

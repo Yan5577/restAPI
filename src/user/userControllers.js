@@ -17,6 +17,7 @@ exports.createUser = async (request, response) => {
 
 exports.readUsers = async (request, response) => {
   try {
+    console.log("line20")
     const users = await User.find({})
     console.log(users)
     response.status(200).send({user: users})
@@ -27,7 +28,7 @@ exports.readUsers = async (request, response) => {
 }
 
 
-exports.updataUsers = async (request, response) => {
+exports.updateUsers = async (request, response) => {
   try {
     await User.updateOne(
       { username: request.body.username },
@@ -42,7 +43,7 @@ exports.updataUsers = async (request, response) => {
   }
 }
 
-exports.deleteUsers = async (request, response) => {
+exports.deleteUser = async (request, response) => {
   try {
     await User.deleteOne({ username: request.body.username }),
       response.status(200).send({message: "successfully deleted a user"})
@@ -57,11 +58,14 @@ exports.loginUser = async (request, response) => {
     if (request.authUser) {
       console.log("token exists continue to login")
       response.status(200).send({username: request.user.username})
+    } else {
+
+    
+      const user = await User.findOne({ username: request.body.username })
+      const token = await jwt.sign({ _id: user._id }, process.env.SECRET)
+      console.log("token not passed continue to login and generate a new token")
+      response.status(200).send({ username: user.username, token })
     }
-    const user = await User.findOne({ username: request.body.username })
-    const token = await jwt.sign({ _id: user._id }, process.env.SECRET)
-    console.log("token not passed continue to login and generate a new token")
-    response.status(200).send({ username: user.username, token })
     } catch (error) {
     console.log(error);
     response.status(500).send({ error: error.message });
